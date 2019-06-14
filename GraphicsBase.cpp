@@ -29,7 +29,7 @@ int windowY = 300;
 int windowWidth = 800;
 int windowHeight = 600;
 
-RECT wr = { 0, 0, windowWidth, windowHeight };
+
 
 
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -52,11 +52,12 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	wc.lpfnWndProc = WindowProc;
 	wc.hInstance = hInstance;
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.hbrBackground = (HBRUSH)COLOR_WINDOW;
+	//wc.hbrBackground = (HBRUSH)COLOR_WINDOW;
 	wc.lpszClassName = L"GraphicsBase";
 
 	RegisterClassEx(&wc);
 
+	RECT wr = { 0, 0, windowWidth, windowHeight };
 	AdjustWindowRect(&wr, WS_OVERLAPPEDWINDOW, FALSE);
 
 	hWnd = CreateWindowEx(NULL,
@@ -123,10 +124,13 @@ void InitD3D(HWND hWnd) {
 
 	scd.BufferCount = 1;
 	scd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	scd.BufferDesc.Width = windowWidth;
+	scd.BufferDesc.Height = windowHeight;
 	scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	scd.OutputWindow = hWnd;
 	scd.SampleDesc.Count = 4;
 	scd.Windowed = TRUE;
+	scd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	D3D11CreateDeviceAndSwapChain(NULL,
 		D3D_DRIVER_TYPE_HARDWARE,
@@ -172,6 +176,7 @@ void RenderFrame(void) {
 }
 
 void CleanD3D() {
+	swapchain->SetFullscreenState(FALSE, NULL);
 	swapchain->Release();
 	backbuffer->Release();
 	dev->Release();
