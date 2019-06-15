@@ -169,7 +169,7 @@ int Skeleton::listen() {
 		for (int i = 0; i < numFuncs; i++) {
 			ContextFunction* f = registeredFuncs[i];
 			if (f->type == e.type) {
-				if (f->type == SDL_KEYDOWN) {
+				if (f->type == SDL_KEYDOWN && e.key.repeat == 0) {
 					if (currentKeyStates[f->key]) {
 						f->func();
 					}
