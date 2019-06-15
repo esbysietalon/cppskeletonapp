@@ -4,37 +4,48 @@
 #include <windows.h>    // include the basic windows header file
 #include <SDL.h>
 #include <iostream>
+
+struct Skin {
+	SDL_Texture* texture;
+	int w, h;
+};
 struct Sprite {
-	SDL_Texture* surface;
+	Skin* skin;
 	int x, y;
 };
-
-class Graphics {
+class Skeleton {
 public:
-	Graphics();
-	~Graphics();
-	void loadMedia(char* filepath);
+	Skeleton(int w, int h);
+	~Skeleton();
+	int loadMedia(char* filepath);
 	
-	void createTexture();
-	
+	int createTexture(Uint32* pixels, int w, int h);
+	int createSprite(int textureindex, int x, int y);
+
 	bool listenExit();
 	void render();
 private:
 	bool init();
-	void close();
-	int addSurface(SDL_Surface* surface);
 
+	int screenWidth = 300;
+	int screenHeight = 300;
+
+	void close();
+
+	int addSurface(SDL_Surface* surface);
+	int addSprite(Sprite* sprite);
+	int addSkin(Skin* skin);
 	int numSurfaces = 0;
 	int curSurfaceSize = 1;
-	int numTextures = 0;
-	int curTextureSize = 1;
+	int numSkins = 0;
+	int curSkinSize = 1;
 	int numSprites = 0;
 	int curSpriteSize = 1;
 
 	Sprite** sprites = NULL;
 
 	SDL_Surface** surfaces = NULL;
-	SDL_Texture** textures = NULL;
+	Skin** skins = NULL;
 
 	SDL_Window* gWindow = NULL;
 	SDL_Surface* gScreenSurface = NULL;
