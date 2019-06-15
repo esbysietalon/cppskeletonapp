@@ -4,18 +4,23 @@
 #include "stdafx.h"
 #include "GraphicsBase.h"
 
-#include <windows.h>    // include the basic windows header file
-#include <SDL.h>
-#include <iostream>
+
 
 #define SCREEN_W 800
 #define SCREEN_H 600
 
-SDL_Window* gWindow = NULL;
-SDL_Surface* gScreenSurface = NULL;
-SDL_Surface* gHelloWorld = NULL;
 
-bool init() {
+
+
+
+Graphics::Graphics() {
+	init();
+}
+Graphics::~Graphics() {
+	close();
+}
+
+bool Graphics::init() {
 	bool success = true;
 
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -36,56 +41,58 @@ bool init() {
 	return success;
 }
 
-bool loadMedia() {
-	bool success = true;
+void Graphics::loadMedia(char* filepath) {
+	SDL_Surface* media = NULL;
 
-	gHelloWorld = SDL_LoadBMP("Resources/hello_world.bmp");
-	if (gHelloWorld == NULL) {
-		printf("Unable to load image %s! SDL ERROR:%s\n", "Resources/hello_world.bmp", SDL_GetError());
-		success = false;
+	media = SDL_LoadBMP(filepath);
+	
+	if (media == NULL) {
+		printf("Unable to load image %s! SDL ERROR:%s\n", "filepath", SDL_GetError());
+	}
+	else {
+		addSurface(media);
 	}
 	
-	return success;
 }
 
-void close() {
-	SDL_FreeSurface(gHelloWorld);
-	gHelloWorld = NULL;
+void Graphics::createTexture() {
+	SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, 640, 480);
+}
+
+int Graphics::addSurface(SDL_Surface* surface) {
+	if (surface == NULL)
+		return -1;
+	numSurfaces++;
+	if (numSurfaces >= curSurfaceSize) {
+		surfaces = (SDL_Surface**)realloc(surfaces, sizeof(SDL_Surface*) * numSurfaces * 2);
+		curSurfaceSize = numSurfaces * 2;
+	}
+	surfaces[numSurfaces - 1] = surface;
+	return numSurfaces - 1;
+}
+
+void Graphics::close() {
+	for (int i = 0; i < numSurfaces; i++) {
+		SDL_FreeSurface(surfaces[i]);
+	}
+	surfaces = NULL;
 	SDL_DestroyWindow(gWindow);
-	gWindow = NULL;
 	SDL_Quit();
 }
 
-int main(int argc, char** args) {
-
-	bool quit = false;
+bool Graphics::listenExit() {
 	SDL_Event e;
-
-	if (!init()) {
-		printf("Failed to initialize SDL!\n");
-	}
-	else {
-		if (!loadMedia()) {
-			printf("Failed to load media!\n");
-		}
-		else {
-			while (!quit) {
-				while (SDL_PollEvent(&e) != 0) {
-					if (e.type == SDL_QUIT) {
-						quit = true;
-					}
-				}
-
-				SDL_BlitSurface(gHelloWorld, NULL, gScreenSurface, NULL);
-				SDL_UpdateWindowSurface(gWindow);
-			}
-			
-			
+	while (SDL_PollEvent(&e) != 0) {
+		if (e.type == SDL_QUIT) {
+			return true;
 		}
 	}
-
-	
-	
-	close();
-	return 0;
+	return false;
 }
+
+void Graphics::render() {
+	for(int i = 0; i < numSurfaces; i++)
+		SDL_BlitSurface(surfaces[i], NULL, gScreenSurface, NULL);
+	SDL_UpdateWindowSurface(gWindow);
+}
+
