@@ -36,6 +36,7 @@ bool Skeleton::init() {
 		else {
 			gScreenSurface = SDL_GetWindowSurface(gWindow);
 		}
+		renderer = SDL_CreateRenderer(gWindow, -1, 0);
 	}
 
 	return success;
@@ -52,6 +53,8 @@ int Skeleton::loadMedia(char* filepath) {
 	else {
 		return addSurface(media);
 	}
+	
+	//return media;
 	return -1;
 }
 
@@ -141,6 +144,13 @@ void Skeleton::render() {
 		dstrect.y = sprites[i]->y;
 		dstrect.w = sprites[i]->skin->w;
 		dstrect.h = sprites[i]->skin->h;
+		//std::cout << dstrect.x << std::endl;
+		//std::cout << dstrect.y << std::endl;
+		//std::cout << dstrect.w << std::endl;
+		//std::cout << dstrect.h << std::endl;
+		
+		//SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, loadMedia("Resources/hello_world.bmp"));
+		//std::cout << renderer << std::endl;
 		SDL_RenderCopy(renderer, sprites[i]->skin->texture, NULL, &dstrect);
 	}
 	SDL_RenderPresent(renderer);
