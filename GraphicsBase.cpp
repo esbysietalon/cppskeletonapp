@@ -58,8 +58,9 @@ int Skeleton::loadMedia(char* filepath) {
 	return -1;
 }
 
-int Skeleton::createTexture(Uint32* pixels, int w, int h) {
+int Skeleton::createTexture(int* pixels, int w, int h) {
 	SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, w, h);
+	SDL_Surface* surface = NULL;
 	SDL_UpdateTexture(texture, NULL, pixels, w * sizeof(Uint32));
 	Skin* skin = new Skin;
 	skin->texture = texture;

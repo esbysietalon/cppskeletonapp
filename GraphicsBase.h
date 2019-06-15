@@ -19,7 +19,7 @@ public:
 	~Skeleton();
 	int loadMedia(char* filepath);
 	
-	int createTexture(Uint32* pixels, int w, int h);
+	int createTexture(int* pixels, int w, int h);
 	int createSprite(int textureindex, int x, int y);
 
 	bool listenExit();
