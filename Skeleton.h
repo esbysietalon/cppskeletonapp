@@ -5,6 +5,12 @@
 #include <SDL.h>
 #include <iostream>
 
+struct ContextFunction {
+	void (*func)();
+	SDL_EventType type;
+	SDL_Scancode key;
+};
+
 struct Skin {
 	SDL_Texture* texture;
 	int w, h;
@@ -21,8 +27,10 @@ public:
 	
 	int createTexture(int* pixels, int w, int h);
 	int createSprite(int textureindex, int x, int y);
+	Sprite* getSprite(int spriteIndex);
 
-	bool listenExit();
+	void registerFunction(void(*func)(), SDL_EventType type, SDL_Scancode key = SDL_SCANCODE_LANG1);
+	int listen();
 	void render();
 private:
 	bool init();
@@ -32,9 +40,12 @@ private:
 
 	void close();
 
+	
+
 	int addSurface(SDL_Surface* surface);
 	int addSprite(Sprite* sprite);
 	int addSkin(Skin* skin);
+	int addFunction(ContextFunction* func);
 	int numSurfaces = 0;
 	int curSurfaceSize = 1;
 	int numSkins = 0;
@@ -50,4 +61,8 @@ private:
 	SDL_Window* gWindow = NULL;
 	SDL_Surface* gScreenSurface = NULL;
 	SDL_Renderer*  renderer = NULL;
+
+	ContextFunction** registeredFuncs = NULL;
+	int numFuncs = 0;
+	int registrySize = 1;
 };

@@ -2,7 +2,7 @@
 //
 
 #include "stdafx.h"
-#include "GraphicsBase.h"
+#include "Skeleton.h"
 
 
 
@@ -60,7 +60,6 @@ int Skeleton::loadMedia(char* filepath) {
 
 int Skeleton::createTexture(int* pixels, int w, int h) {
 	SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, w, h);
-	SDL_Surface* surface = NULL;
 	SDL_UpdateTexture(texture, NULL, pixels, w * sizeof(Uint32));
 	Skin* skin = new Skin;
 	skin->texture = texture;
@@ -101,6 +100,19 @@ int Skeleton::addSkin(Skin* skin) {
 	return numSkins - 1;
 }
 
+int Skeleton::addFunction(ContextFunction * func)
+{
+	if (func == NULL)
+		return -1;
+	numFuncs++;
+	if (numFuncs >= registrySize) {
+		registeredFuncs = (ContextFunction**)realloc(registeredFuncs, sizeof(ContextFunction*) * registrySize * 2);
+		registrySize *= 2;
+	}
+	registeredFuncs[numFuncs - 1] = func;
+	return numFuncs - 1;
+}
+
 int Skeleton::addSprite(Sprite* sprite) {
 	if (sprite == NULL)
 		return -1;
@@ -127,14 +139,48 @@ void Skeleton::close() {
 	SDL_Quit();
 }
 
-bool Skeleton::listenExit() {
+Sprite * Skeleton::getSprite(int spriteIndex)
+{
+	Sprite* sprite = NULL;
+	if (spriteIndex >= 0 && spriteIndex < numSprites) {
+		sprite = sprites[spriteIndex];
+	}
+	return sprite;
+}
+
+void Skeleton::registerFunction(void(*func)(), SDL_EventType type, SDL_Scancode key)
+{
+	ContextFunction* newfunc = new ContextFunction;
+	newfunc->func = func;
+	newfunc->type = type;
+	newfunc->key = key;
+	
+	addFunction(newfunc);
+}
+
+int Skeleton::listen() {
 	SDL_Event e;
 	while (SDL_PollEvent(&e) != 0) {
 		if (e.type == SDL_QUIT) {
-			return true;
+			return 0;
+		}
+
+		const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
+		for (int i = 0; i < numFuncs; i++) {
+			ContextFunction* f = registeredFuncs[i];
+			if (f->type == e.type) {
+				if (f->type == SDL_KEYDOWN) {
+					if (currentKeyStates[f->key]) {
+						f->func();
+					}
+				}
+				else {
+					f->func();
+				}
+			}
 		}
 	}
-	return false;
+	return 1;
 }
 
 void Skeleton::render() {
