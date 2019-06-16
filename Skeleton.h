@@ -1,9 +1,7 @@
 #pragma once
 
-#include "resource.h"
 #include <windows.h>    // include the basic windows header file
 #include <SDL.h>
-#include <iostream>
 #include <functional>
 
 struct ContextFunction {
