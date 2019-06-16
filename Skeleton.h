@@ -4,9 +4,10 @@
 #include <windows.h>    // include the basic windows header file
 #include <SDL.h>
 #include <iostream>
+#include <functional>
 
 struct ContextFunction {
-	void (*func)();
+	std::function<void()> func;
 	SDL_EventType type;
 	SDL_Scancode key;
 };
@@ -32,7 +33,7 @@ public:
 	void registerFunction(void(*func)(), SDL_EventType type, SDL_Scancode key = SDL_SCANCODE_LANG1);
 	int listen();
 	void render();
-	void capFrames(int fps, void (*func)());
+	void capFrames(int fps, std::function<void()>* funcs, int flen);
 private:
 	bool init();
 

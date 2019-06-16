@@ -58,10 +58,12 @@ int Skeleton::loadMedia(char* filepath) {
 	return -1;
 }
 
-void Skeleton::capFrames(int fps, void (*func)()) {
+void Skeleton::capFrames(int fps, std::function<void()>* funcs, int flen) {
 	int startTime = SDL_GetTicks();
 	int cap = (int)(1000.0 / fps);
-	func();
+	for (int i = 0; i < flen; i++) {
+		funcs[i]();
+	}
 	int nowTime = SDL_GetTicks();
 	int delta = nowTime - startTime;
 	if (delta < cap) {
