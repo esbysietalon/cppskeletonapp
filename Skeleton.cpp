@@ -18,7 +18,7 @@ Skeleton::Skeleton(int width, int height) {
 }
 Skeleton::~Skeleton() {
 	close();
-}
+} 
 
 bool Skeleton::init() {
 	bool success = true;
@@ -56,6 +56,17 @@ int Skeleton::loadMedia(char* filepath) {
 	
 	//return media;
 	return -1;
+}
+
+void Skeleton::capFrames(int fps, void (*func)()) {
+	int startTime = SDL_GetTicks();
+	int cap = (int)(1000.0 / fps);
+	func();
+	int nowTime = SDL_GetTicks();
+	int delta = nowTime - startTime;
+	if (delta < cap) {
+		SDL_Delay(cap - delta);
+	}
 }
 
 int Skeleton::createTexture(int* pixels, int w, int h) {
@@ -169,8 +180,13 @@ int Skeleton::listen() {
 		for (int i = 0; i < numFuncs; i++) {
 			ContextFunction* f = registeredFuncs[i];
 			if (f->type == e.type) {
-				if (f->type == SDL_KEYDOWN && e.key.repeat == 0) {
+				if (f->type == SDL_KEYDOWN) {
 					if (currentKeyStates[f->key]) {
+						f->func();
+					}
+				}
+				else if (f->type == SDL_KEYUP) {
+					if (!currentKeyStates[f->key]) {
 						f->func();
 					}
 				}

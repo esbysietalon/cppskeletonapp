@@ -32,6 +32,7 @@ public:
 	void registerFunction(void(*func)(), SDL_EventType type, SDL_Scancode key = SDL_SCANCODE_LANG1);
 	int listen();
 	void render();
+	void capFrames(int fps, void (*func)());
 private:
 	bool init();
 
