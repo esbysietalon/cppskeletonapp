@@ -11,7 +11,9 @@ struct ContextFunction {
 	SDL_EventType type;
 	SDL_Scancode key;
 };
-
+struct intpair {
+	int x, y;
+};
 struct Skin {
 	SDL_Texture* texture;
 	int w, h;
@@ -19,6 +21,12 @@ struct Skin {
 struct Sprite {
 	Skin* skin;
 	int x, y;
+	intpair getCenter() {
+		intpair point;
+		point.x = x + skin->w / 2;
+		point.y = y + skin->h / 2;
+		return point;
+	}
 };
 class Skeleton {
 public:
