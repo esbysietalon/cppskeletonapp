@@ -84,69 +84,67 @@ int Skeleton::createTexture(int* pixels, int w, int h) {
 int Skeleton::createSprite(int textureindex, int x, int y)
 {
 	Sprite* sprite = new Sprite;
-	sprite->skin = skins[textureindex];
+
+	sprite->skin = skinMap[textureindex];
 	sprite->x = x;
 	sprite->y = y;
 	return addSprite(sprite);
 }
 
-int Skeleton::addSurface(SDL_Surface* surface) {
-	if (surface == NULL)
-		return -1;
-	numSurfaces++;
-	if (numSurfaces >= curSurfaceSize) {
-		surfaces = (SDL_Surface**)realloc(surfaces, sizeof(SDL_Surface*) * numSurfaces * 2);
-		curSurfaceSize = numSurfaces * 2;
+bool Skeleton::removeSprite(int spriteindex)
+{
+	if (spriteMap.count(spriteindex) > 0) {
+		spriteMap.erase(spriteindex);
+		spriteRegistry.erase(spriteindex);
+		return true;
 	}
-	surfaces[numSurfaces - 1] = surface;
-	return numSurfaces - 1;
+	return false;
+}
+
+int Skeleton::addSurface(SDL_Surface* surface) {
+	int newId = surfaceRegistered;
+	while (surfaceRegistry.count(newId = surfaceRegistered) > 0)
+		surfaceRegistered++;
+	surfaceMap[newId] = surface;
+	surfaceRegistry.emplace(newId);
+	return newId;
 }
 int Skeleton::addSkin(Skin* skin) {
-	if (skin == NULL)
-		return -1;
-	numSkins++;
-	if (numSkins >= curSkinSize) {
-		skins = (Skin**)realloc(skins, sizeof(Skin*) * numSkins * 2);
-		curSkinSize = numSkins * 2;
-	}
-	skins[numSkins - 1] = skin;
-	return numSkins - 1;
+	int newId = skinRegistered;
+	while (skinRegistry.count(newId = skinRegistered) > 0)
+		skinRegistered++; 
+	skinMap[newId] = skin;
+	skinRegistry.emplace(newId);
+	return newId;
+}
+int Skeleton::addSprite(Sprite* sprite) {
+	int newId;
+	while (spriteRegistry.count(newId = spriteRegistered) > 0)
+		spriteRegistered++;
+	spriteMap[newId] = sprite;
+	spriteRegistry.emplace(newId);
+	return newId;
 }
 
 int Skeleton::addFunction(ContextFunction * func)
 {
-	if (func == NULL)
-		return -1;
-	numFuncs++;
-	if (numFuncs >= registrySize) {
-		registeredFuncs = (ContextFunction**)realloc(registeredFuncs, sizeof(ContextFunction*) * registrySize * 2);
-		registrySize *= 2;
-	}
-	registeredFuncs[numFuncs - 1] = func;
-	return numFuncs - 1;
+	int newId;
+	while (funcRegistry.count(newId = funcRegistered) > 0)
+		funcRegistered++;
+	funcMap[newId] = func;
+	funcRegistry.emplace(newId);
+	return newId;
 }
 
-int Skeleton::addSprite(Sprite* sprite) {
-	if (sprite == NULL)
-		return -1;
-	numSprites++;
-	if (numSprites >= curSpriteSize) {
-		sprites = (Sprite**)realloc(sprites, sizeof(Sprite*) * numSprites * 2);
-		curSpriteSize = numSprites * 2;
-	}
-	sprites[numSprites - 1] = sprite;
-	return numSprites - 1;
-}
+
 
 void Skeleton::close() {
-	for (int i = 0; i < numSurfaces; i++) {
-		SDL_FreeSurface(surfaces[i]);
+	for (std::unordered_map<int, SDL_Surface*>::iterator it = surfaceMap.begin(); it != surfaceMap.end(); it++) {
+		SDL_FreeSurface((*it).second);
 	}
-	for (int i = 0; i < numSkins; i++) {
-		SDL_DestroyTexture(skins[i]->texture);
+	for (std::unordered_map<int, Skin*>::iterator it = skinMap.begin(); it != skinMap.end(); it++) {
+		SDL_DestroyTexture((*it).second->texture);
 	}
-	surfaces = NULL;
-	skins = NULL;
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(gWindow);
 	SDL_Quit();
@@ -155,9 +153,8 @@ void Skeleton::close() {
 Sprite * Skeleton::getSprite(int spriteIndex)
 {
 	Sprite* sprite = NULL;
-	if (spriteIndex >= 0 && spriteIndex < numSprites) {
-		sprite = sprites[spriteIndex];
-	}
+	if (spriteMap.count(spriteIndex) > 0)
+		sprite = spriteMap[spriteIndex];
 	return sprite;
 }
 
@@ -179,8 +176,8 @@ int Skeleton::listen() {
 		}
 
 		const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
-		for (int i = 0; i < numFuncs; i++) {
-			ContextFunction* f = registeredFuncs[i];
+		for (std::unordered_map<int, ContextFunction*>::iterator it = funcMap.begin(); it != funcMap.end(); it++) {
+			ContextFunction* f = (*it).second;
 			if (f->type == e.type) {
 				if (f->type == SDL_KEYDOWN) {
 					if (currentKeyStates[f->key]) {
@@ -203,12 +200,12 @@ int Skeleton::listen() {
 
 void Skeleton::render() {
 	SDL_RenderClear(renderer);
-	for (int i = 0; i < numSprites; i++) {
+	for (std::unordered_map<int, Sprite*>::iterator it = spriteMap.begin(); it != spriteMap.end(); it++) {
 		SDL_Rect dstrect;
-		dstrect.x = sprites[i]->x;
-		dstrect.y = sprites[i]->y;
-		dstrect.w = sprites[i]->skin->w;
-		dstrect.h = sprites[i]->skin->h;
+		dstrect.x = (*it).second->x;
+		dstrect.y = (*it).second->y;
+		dstrect.w = (*it).second->skin->w;
+		dstrect.h = (*it).second->skin->h;
 		//std::cout << dstrect.x << std::endl;
 		//std::cout << dstrect.y << std::endl;
 		//std::cout << dstrect.w << std::endl;
@@ -216,7 +213,7 @@ void Skeleton::render() {
 		
 		//SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, loadMedia("Resources/hello_world.bmp"));
 		//std::cout << renderer << std::endl;
-		SDL_RenderCopy(renderer, sprites[i]->skin->texture, NULL, &dstrect);
+		SDL_RenderCopy(renderer, (*it).second->skin->texture, NULL, &dstrect);
 	}
 	SDL_RenderPresent(renderer);
 	//SDL_UpdateWindowSurface(gWindow);

@@ -3,6 +3,8 @@
 #include <windows.h>    // include the basic windows header file
 #include <SDL.h>
 #include <functional>
+#include <unordered_map>
+#include <set>
 
 struct ContextFunction {
 	std::function<void()> func;
@@ -26,6 +28,7 @@ public:
 	
 	int createTexture(int* pixels, int w, int h);
 	int createSprite(int textureindex, int x, int y);
+	bool removeSprite(int spriteindex);
 	Sprite* getSprite(int spriteIndex);
 
 	void registerFunction(void(*func)(), SDL_EventType type, SDL_Scancode key = SDL_SCANCODE_LANG1);
@@ -40,29 +43,27 @@ private:
 
 	void close();
 
-	
-
 	int addSurface(SDL_Surface* surface);
 	int addSprite(Sprite* sprite);
 	int addSkin(Skin* skin);
 	int addFunction(ContextFunction* func);
-	int numSurfaces = 0;
-	int curSurfaceSize = 1;
-	int numSkins = 0;
-	int curSkinSize = 1;
-	int numSprites = 0;
-	int curSpriteSize = 1;
+	
+	std::unordered_map<int, Sprite*> spriteMap;
+	std::unordered_map<int, SDL_Surface*> surfaceMap;
+	std::unordered_map<int, Skin*> skinMap;
+	std::unordered_map<int, ContextFunction*> funcMap;
 
-	Sprite** sprites = NULL;
+	std::set<int> spriteRegistry;
+	std::set<int> surfaceRegistry;
+	std::set<int> skinRegistry;
+	std::set<int> funcRegistry;
 
-	SDL_Surface** surfaces = NULL;
-	Skin** skins = NULL;
+	int spriteRegistered = 0;
+	int surfaceRegistered = 0;
+	int skinRegistered = 0;
+	int funcRegistered = 0;
 
 	SDL_Window* gWindow = NULL;
 	SDL_Surface* gScreenSurface = NULL;
 	SDL_Renderer*  renderer = NULL;
-
-	ContextFunction** registeredFuncs = NULL;
-	int numFuncs = 0;
-	int registrySize = 1;
 };
