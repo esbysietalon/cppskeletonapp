@@ -27,6 +27,12 @@ struct Sprite {
 		point.y = y + skin->h / 2;
 		return point;
 	}
+	intpair getEdge() {
+		intpair point;
+		point.x = x + skin->w;
+		point.y = y + skin->h;
+		return point;
+	}
 };
 class Skeleton {
 public:
