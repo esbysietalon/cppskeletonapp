@@ -15,9 +15,15 @@ Skeleton::Skeleton(int width, int height) {
 	screenWidth = width;
 	screenHeight = height;
 	init();
+	addRunFunc(std::bind(&Skeleton::render, this));
 }
 Skeleton::~Skeleton() {
+	std::cout << "Shutting down.." << std::endl;
+	funcs.clear();
+	std::cout << "Run functions cleared.." << std::endl;
 	close();
+	std::cout << "SDL shut down.." << std::endl;
+	std::cout << "Shutdown successful.." << std::endl;
 } 
 
 bool Skeleton::init() {
@@ -58,7 +64,35 @@ int Skeleton::loadMedia(char* filepath) {
 	return -1;
 }
 
-void Skeleton::capFrames(int fps, std::function<void()>* funcs, int flen) {
+void Skeleton::setFrameCap(int num)
+{
+	fps = num;
+}
+
+void Skeleton::addRunFunc(std::function<void()> func)
+{
+	funcs.emplace_back(func);
+}
+
+void Skeleton::run() {
+	int startTime = SDL_GetTicks();
+	int cap = (int)(1000.0 / fps);
+	for(int i = 0; i < funcs.size(); i++){
+		if(running)
+			funcs.at(i)();
+	}
+	/*if(funcs.size() > 0)
+		for (std::vector<std::function<void()>>::iterator it = funcs.begin(); it != funcs.end(); it++){
+			(*it)();
+		}*/
+	int nowTime = SDL_GetTicks();
+	int delta = nowTime - startTime;
+	if (delta < cap) {
+		SDL_Delay(cap - delta);
+	}
+}
+
+/*void Skeleton::capFrames(int fps, std::function<void()>* funcs, int flen) {
 	int startTime = SDL_GetTicks();
 	int cap = (int)(1000.0 / fps);
 	for (int i = 0; i < flen; i++) {
@@ -69,7 +103,7 @@ void Skeleton::capFrames(int fps, std::function<void()>* funcs, int flen) {
 	if (delta < cap) {
 		SDL_Delay(cap - delta);
 	}
-}
+}*/
 
 int Skeleton::createTexture(int* pixels, int w, int h) {
 	SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, w, h);
@@ -139,14 +173,21 @@ int Skeleton::addFunction(ContextFunction * func)
 
 
 void Skeleton::close() {
-	for (std::unordered_map<int, SDL_Surface*>::iterator it = surfaceMap.begin(); it != surfaceMap.end(); it++) {
-		SDL_FreeSurface((*it).second);
-	}
+	std::cout << "Destroying Textures.." << std::endl;
 	for (std::unordered_map<int, Skin*>::iterator it = skinMap.begin(); it != skinMap.end(); it++) {
 		SDL_DestroyTexture((*it).second->texture);
 	}
+	std::cout << "Textures destroyed.." << std::endl;
+	std::cout << "Freeing Surfaces.." << std::endl;
+	for (std::unordered_map<int, SDL_Surface*>::iterator it = surfaceMap.begin(); it != surfaceMap.end(); it++) {
+		SDL_FreeSurface((*it).second);
+	}
+	std::cout << "Surfaces freed.." << std::endl;
+	std::cout << "Destroying Renderer.." << std::endl;
 	SDL_DestroyRenderer(renderer);
+	std::cout << "Destroying Window.." << std::endl;
 	SDL_DestroyWindow(gWindow);
+	std::cout << "Quitting SDL.." << std::endl;
 	SDL_Quit();
 }
 
@@ -172,6 +213,8 @@ int Skeleton::listen() {
 	SDL_Event e;
 	while (SDL_PollEvent(&e) != 0) {
 		if (e.type == SDL_QUIT) {
+			running = false;
+			funcs.clear();
 			return 0;
 		}
 

@@ -3,8 +3,10 @@
 #include <windows.h>    // include the basic windows header file
 #include <SDL.h>
 #include <functional>
+#include <vector>
 #include <unordered_map>
 #include <set>
+#include <iostream>
 
 struct ContextFunction {
 	std::function<void()> func;
@@ -48,12 +50,18 @@ public:
 	void registerFunction(void(*func)(), SDL_EventType type, SDL_Scancode key = SDL_SCANCODE_LANG1);
 	int listen();
 	void render();
-	void capFrames(int fps, std::function<void()>* funcs, int flen);
+	void run();
+	void setFrameCap(int fps);
+	void addRunFunc(std::function<void()> func);
+	//void capFrames(int fps, std::function<void()>* funcs, int flen);
 private:
 	bool init();
 
+	bool running = true;
+
 	int screenWidth = 300;
 	int screenHeight = 300;
+	int fps = 60;
 
 	void close();
 
@@ -61,6 +69,8 @@ private:
 	int addSprite(Sprite* sprite);
 	int addSkin(Skin* skin);
 	int addFunction(ContextFunction* func);
+	
+	std::vector<std::function<void()>> funcs;
 	
 	std::unordered_map<int, Sprite*> spriteMap;
 	std::unordered_map<int, SDL_Surface*> surfaceMap;
