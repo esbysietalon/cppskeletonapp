@@ -199,7 +199,7 @@ Sprite * Skeleton::getSprite(int spriteIndex)
 	return sprite;
 }
 
-void Skeleton::registerFunction(void(*func)(), SDL_EventType type, SDL_Scancode key)
+void Skeleton::registerFunction(std::function<void()> func, SDL_EventType type, SDL_Scancode key)
 {
 	ContextFunction* newfunc = new ContextFunction;
 	newfunc->func = func;
