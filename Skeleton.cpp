@@ -11,9 +11,10 @@
 
 
 
-Skeleton::Skeleton(int width, int height) {
+Skeleton::Skeleton(int width, int height, char* t) {
 	screenWidth = width;
 	screenHeight = height;
+	title = t;
 	init();
 	addRunFunc(std::bind(&Skeleton::render, this));
 }
@@ -34,7 +35,7 @@ bool Skeleton::init() {
 		success = false;
 	}
 	else {
-		gWindow = SDL_CreateWindow("Skeleton (SDL)", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screenWidth, screenHeight, SDL_WINDOW_SHOWN);
+		gWindow = SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screenWidth, screenHeight, SDL_WINDOW_SHOWN);
 		if (gWindow == NULL) {
 			printf("Window could not be created! SDL_ERROR: %s\n", SDL_GetError());
 			success = false;

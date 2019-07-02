@@ -38,7 +38,7 @@ struct Sprite {
 };
 class Skeleton {
 public:
-	Skeleton(int w, int h);
+	Skeleton(int w, int h, char* t);
 	~Skeleton();
 	int loadMedia(char* filepath);
 	
@@ -58,6 +58,7 @@ private:
 	bool init();
 
 	bool running = true;
+	char* title = "";
 
 	int screenWidth = 300;
 	int screenHeight = 300;
